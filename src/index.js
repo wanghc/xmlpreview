@@ -176,7 +176,8 @@ window.DHC_PreviewByCanvas = function(canvas, inpara, listpara, printjson, xmlfl
 		ClassName:'web.DHCXMLPConfig',
 		MethodName:'ReadXmlByName',
 		Name:xmlflag,
-		dataType:'text'	
+		dataType:'text',
+		global:false /*跨界面调用时，有些IE会报，无效访问*/
 	},function(xml){
 		var xotree = new XML.ObjTree();
 		var inputdata = $.trim(xml);

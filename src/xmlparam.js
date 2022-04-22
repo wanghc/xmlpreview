@@ -1,4 +1,10 @@
-function inpara2Obj(inpara){
+/**
+ * 
+ * @param {String} inpara 
+ * name C2 病人甲^sex C2 男^age C2 33岁
+ * @returns 返回对象
+ */
+function inpara2Obj(inpara) {
 	var c2 = String.fromCharCode(2);
 	var arr = inpara.split('^');
 	var obj = {};

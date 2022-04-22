@@ -516,4 +516,5 @@ which I will do instead of keeping this documentation like it is.
 =cut
 // ========================================================================
 */
+// 增加导出
 export { XML};

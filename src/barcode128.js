@@ -137,7 +137,7 @@ function code128Auto (canvas, input,options) {
         context.textBaseline = 'top';
         context.textAlign = 'center';
         context.font="normal 14px Arial"
-        context.fillText(input, canvasWidth, y + uh + 1); //文本居中,x要为width
+        context.fillText(input, canvasWidth, y + uh + 1); // 文本居中,x要为width
         context.textAlign = 'left';
 	}	
 	for (var i = 0, len = units.length; i < len; i++) {

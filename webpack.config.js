@@ -9,7 +9,7 @@ module.exports = {
         },
         filename:'xmlPreviewByCanvas.js', 
         //path: resolve(__dirname,'build')
-        path: 'E:\\dthealth\\app\\dthis\\web\\scripts\\dhctt\\xmldesigner'
+        path: 'E:\\dthealth\\app\\dthis\\web\\scripts\\dhctt\\xmldesigner' //此路径要修改
     },
     //mode:'development',
     mode:'production',

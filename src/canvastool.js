@@ -37,7 +37,7 @@ function CanvasTool(options) {
         this.mycontext.fillText(value, x,y); //,maxWidth	
     }
     this.ADD_PRINT_IMAGE = function (x,y,width,height,value,callback){
-        if (value.indexOf("http:")==0 || value.indexOf("data:")==0){
+        if (value.indexOf("http")==0 || value.indexOf("data:")==0){
             var newimg = new Image();
             newimg.style.width = width+'px';
             newimg.style.height = height + 'px';

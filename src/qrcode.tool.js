@@ -9,6 +9,7 @@ var QRCodeTool = function (canvas, input, options) {
         cl = QRCode.CorrectLevel.M;
     }
     if (options.qrcodeversion = 14) {
+        // TODO :  为兼容LODOP实现，转成对应版本
       //,1,2,3,5,7,10,14,  
     }
 
