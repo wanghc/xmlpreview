@@ -17,6 +17,8 @@
 */
 DHC_PreviewByCanvas(canvas,inpara,inlist,jsonArr,flagName,cfg)
 ```
+### 20220902
+- 列表数据以c2开头,则去除c2,去掉空行
 
 ### 20220422
 - 增加global:false配置项，解决在某些IE下报无效访问 :bug:

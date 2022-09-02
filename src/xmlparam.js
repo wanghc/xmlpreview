@@ -22,8 +22,12 @@ function inpara2Obj(inpara) {
  * col31^col32^col33
  * @returns 返回的是二维数据
  */
-function listpara2Obj(listpara){
+function listpara2Obj(listpara) {
+	
 	var c2 = String.fromCharCode(2);
+	if (listpara.indexOf(c2)==0) {
+		listpara = listpara.slice(1);
+	}
 	var arr = listpara.split(c2);
 	var obj = [];
 	arr.forEach(function(item){
