@@ -50,12 +50,16 @@ function splitDataByWidth(val, colWidth,fontsize) {
 	}
 	//根据字体大小得到一个字符的宽度
 	function _getPXCharWidth(fontSize, ch) {
-		var PXWidthObj = { 16: 1.475, 15: 1.47, 14: 1.461, 13: 1.46, 12: 1.444, 11: 1.43, 10: 1.429, 9: 1.42 };
+		//var PXWidthObj = { 16: 1.475, 15: 1.47, 14: 1.461, 13: 1.46, 12: 1.444, 11: 1.43, 10: 1.429, 9: 1.42 };
+		var PXWidthObj = { 16: 1.475, 15: 1.47, 14: 1.461, 13: 1.35, 12: 1.30, 11: 1.28, 10: 1.20, 9: 1.20, 8: 1.20, 7:1.1};
 		var modulus = 1.48;
 		//除数
 		var num = 2;
 		if (/^[\u4e00-\u9fa5]+$/.test(ch)) {
-			num = 1;
+			num = 1; //中文
+		}
+		if ("ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ１２３４５６７８９０｀！＠＃＄％＾＆＊（）＿＋｜＼｛｝［］＂＇。《》／？：；￥｛｝，！、：，、！￥（）【】《》？".indexOf(ch)>-1) {
+			num = 1; // 中文符号
 		}
 		if (fontSize == null && fontSize == "") {
 			fontSize = 15;
@@ -79,7 +83,9 @@ function PrintItem(DevObj, item){
 	var isshowtext = item.isshowtext||"Y", angle=item.angle||0;
 	
 	if(item["type"]){
-		if (item["type"].toLowerCase()=="img" || item["type"].toLowerCase()=="picdatapara"){
+		if (item["type"].toLowerCase() == "newpage") {
+			DevObj.NewPage(); /*翻页*/
+		} else if (item["type"].toLowerCase() == "img" || item["type"].toLowerCase() == "picdatapara") {
 				if (value!=""){
 					DevObj.ADD_PRINT_IMAGE(x,y,width,height,value);
 				}
@@ -168,70 +174,122 @@ function copy(obj){
 	return c;
 }
 
-window.DHC_PreviewByCanvas = function(canvas, inpara, listpara, printjson, xmlflag, cfg) {
-	var inparaJson = inpara2Obj(inpara);
-	var listparaJson = listpara2Obj(listpara);
-	XML.ObjTree.prototype.attr_prefix = "";
-	$cm({
-		ClassName:'web.DHCXMLPConfig',
-		MethodName:'ReadXmlByName',
-		Name:xmlflag,
-		dataType:'text',
-		global:false /*跨界面调用时，有些IE会报，无效访问*/
-	},function(xml){
-		var xotree = new XML.ObjTree();
-		var inputdata = $.trim(xml);
-		var jsonData = xotree.parseXML(inputdata);
-		if (jsonData.appsetting) {
-			var printInfo = _handerPrintJson(jsonData.appsetting.invoice, cfg);
-			var printInParaData = printInfo.printInParaData;
-			//console.log(printInParaData);
-			canvas.style.width = printInParaData[0]['width'];
-			canvas.style.height = printInParaData[0]['height'];
-			canvas.width = printInParaData[0]['width'] * cfg.viewScale;
-			canvas.height = printInParaData[0]['height'] * cfg.viewScale;
-			var DevObj = new CanvasTool({canvas: canvas});
-			printInParaData.forEach(function (item) { PrintItem(DevObj, item); });
-			if (cfg.onCreateIMGBase64 || cfg.onCreatePDFBase64) {
-				var intrCount = 0;
-				window.intr = setInterval(function(){
-					intrCount++;
-					if (printInfo.printImgCount == DevObj.imgLoadComplete || intrCount > 20) {
-						console.log(intrCount);
-						clearInterval(window.intr);
-						var imgBase64Data = DevObj.getImgBase64('image/jpeg', 1);
-						if (cfg.onCreateIMGBase64) {
-							cfg.onCreateIMGBase64.call(this,imgBase64Data);
-						}
-						if (cfg.onCreatePDFBase64) {
-							var doc = null;
-							if (canvas.width > canvas.height) {
-								doc = new jsPDF('l', 'mm', [canvas.width * 0.225, canvas.height * 0.225]);
-							} else {
-								doc = new jsPDF('p', 'mm', [canvas.width * 0.225, canvas.height * 0.225]);
-							}
-							doc.addImage(imgBase64Data, 'jpeg', 0, 0, canvas.width * 0.225, canvas.height * 0.225);
-							if(cfg.pdfDownload) doc.save(xmlflag+'.pdf');
-							var basePDFString = doc.output("datauristring");
-							cfg.onCreatePDFBase64.call(this, basePDFString);
-						}
-						//console.log(str);
-					}
-				}, 100);
+window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlflag, cfg) {
+	this.curPageNo = 0;
+	this.totalPageNo = 1;
+	this.printInParaData = null;
+	this.cfg = cfg;
+	this.inparaJson = inpara2Obj(inpara);
+	this.listparaJson = listpara2Obj(listpara);
+	this.canvasTool = null;
+	this.pageSizeWidth = 0;
+	this.pageSizeHeight = 0;
+	this.layoutContainerId = "XMLLayoutContainer";
+	this.landscapeOrientation = "";
+	this.init = function () {
+		var _t = this;
+		XML.ObjTree.prototype.attr_prefix = "";
+		$cm({
+			ClassName:'web.DHCXMLPConfig',
+			MethodName:'ReadXmlByName',
+			Name:xmlflag,
+			dataType:'text',
+			global:false /*跨界面调用时，有些IE会报，无效访问*/
+		},function(xml){
+			var xotree = new XML.ObjTree();
+			var inputdata = $.trim(xml);
+			var jsonData = xotree.parseXML(inputdata);
+			if (jsonData.appsetting) {
+				_t.landscapeOrientation = jsonData.appsetting.invoice["LandscapeOrientation"];
+				var printInfo = _t._handerPrintJson(jsonData.appsetting.invoice, cfg);
+				var d = printInfo.printInParaData;
+				_t.printInParaData = d;
+				_t.pageSizeWidth = d[0]['width'];
+				_t.pageSizeHeight = d[0]['height'];
+				for (var i = 0; i<_t.totalPageNo; i++){
+					_t.drawByData(i);
+				}
+			}else{
+				alert('print xml template structure error!');	
+				return null;
 			}
-			
-		}else{
-			alert('打印模板结构错误!');	
+			return null;
+		});
+	}
+	this.drawByData = function (pageNo) {
+		var w = this.pageSizeWidth;
+		var h = this.pageSizeHeight;
+		var canvas = document.createElement("canvas");
+		document.getElementById(this.layoutContainerId).appendChild(canvas);
+		canvas.style.width = w;
+		canvas.style.height = h;
+		canvas.width = w * cfg.viewScale;
+		canvas.height = h * cfg.viewScale;
+		var c = new CanvasTool({canvas:canvas});
+		var no = 0,pageNo = pageNo || 0;
+		for (var i = 0; i < this.printInParaData.length; i++){
+			var item = this.printInParaData[i];
+			if (item["type"] == 'newpage') no++;
+			if (no < pageNo) {
+				if (no == 0 && pageNo!=0) { // 重打信息，在非第一页也需要重打
+					if (item["RePrtHeadFlag"] == "Y") {
+						PrintItem(c, item);
+					}
+				}
+				continue;
+			}
+			if (no > pageNo) break;
+			PrintItem(c, item);
 		}
-	});
+		this.curPageNo = pageNo;
+		// printInParaData.forEach(function (item) { if (item["type"]=='newpage') return false ; PrintItem(DevObj, item); });
+		if (cfg.onCreateIMGBase64 || cfg.onCreatePDFBase64) {
+			var intrCount = 0;
+			window.intr = setInterval(function(){
+				intrCount++;
+				if (printInfo.printImgCount == c.imgLoadComplete || intrCount > 20) {
+					clearInterval(window.intr);
+					var imgBase64Data = c.getImgBase64('image/jpeg', 1);
+					if (cfg.onCreateIMGBase64) {
+						cfg.onCreateIMGBase64.call(this,imgBase64Data);
+					}
+					if (cfg.onCreatePDFBase64) {
+						var doc = null;
+						if (canvas.width > canvas.height) {
+							doc = new jsPDF('l', 'mm', [canvas.width * 0.225, canvas.height * 0.225]);
+						} else {
+							doc = new jsPDF('p', 'mm', [canvas.width * 0.225, canvas.height * 0.225]);
+						}
+						doc.addImage(imgBase64Data, 'jpeg', 0, 0, canvas.width * 0.225, canvas.height * 0.225);
+						if(cfg.pdfDownload) doc.save(xmlflag+'.pdf');
+						var basePDFString = doc.output("datauristring");
+						cfg.onCreatePDFBase64.call(this, basePDFString);
+					}
+				}
+			}, 100);
+		}
+	}
+	this.nextPage = function() {
+		if (this.curPageNo == this.totalPageNo) {
+			return;
+		}
+		this.drawByData(this.curPageNo+1);
+	}
+	this.prePage = function() {
+		if (this.curPageNo < 0) {
+			return;
+		}
+		this.drawByData(this.curPageNo-1);
+	}
 	/**
 	 * @param {*} inv 
 	 * @param {Number} index 列元素在printData中的索引
 	 * @param {Number} extHeight 整体向后移动的高度
 	 */
-	var _handleListPrintJson = function (inv, index, data, extHeight, cfg, printData, returnData, printListCount) {
+	this._handleListPrintJson = function (inv, index, data, extHeight, cfg, printData, returnData, printListCount) {
+		var _t = this;
 		if (data == "") return 0; 
-		
+		var XMLOnePageShowRowNumber = inv.ListData.PageRows;
 		var rowHeight = (3.78 * inv.ListData.YStep);
 		var startY = printData[index].yrow + rowHeight + extHeight;
 		var startX = printData[index].xcol;
@@ -246,13 +304,35 @@ window.DHC_PreviewByCanvas = function(canvas, inpara, listpara, printjson, xmlfl
 		var lastColWidth = printData[0].width - printData[index + printListCount - 1].xcol;
 		printData[index + printListCount - 1].colWidth = lastColWidth > 0 ? lastColWidth : 100;
 		// 计算列宽结束----
-
+		var linePaddingWidth = parseInt(cfg.tableBorder || 0) + 2; /*为了让线与汉字间有间隙, 移动位置*/
+		var curPageRowDetailsNumber=0,curPageNo=1;
 		/* 打印列数据 ---- 开始 */
 		data.forEach(function (rowVal, rowIndex) {
-			// 打印列表中横线
-			if (cfg.tabelBroder) returnData.push({type:'line',BeginY:currentY,BeginX:startX,EndY: currentY,EndX: endX ,fontcolor: "#000000",lineWidth:cfg.tabelBroder||1});
 			// 下一行数据打印
-			var rowMaxExtHeigth = 0;
+			var rowMaxExtHeigth = 0,rowMaxItemrowNumber=1/*这大行中有多少小行*/;
+			for (var plc = 0; plc < printListCount; plc++) { //列头
+				if (rowVal.length - 1 < plc) break;
+				var myColArr = [rowVal[plc]];
+				if (cfg.rowContentFit) myColArr = splitDataByWidth(rowVal[plc], printData[index + plc].colWidth, printData[index + plc].fontsize);
+				/* 行内明细最大单元格中行数 */
+				if (rowMaxItemrowNumber < myColArr.length) rowMaxItemrowNumber = myColArr.length;
+			}
+			// 手工考虑插入换页
+			if (curPageRowDetailsNumber + rowMaxItemrowNumber > XMLOnePageShowRowNumber) {
+				returnData.push({ type: 'newpage' }); //向前一大行，写入换页命令
+				curPageRowDetailsNumber = rowMaxItemrowNumber; /*从当前大行中数量开始*/
+				_t.totalPageNo++;
+				currentY = startY;
+			} else {
+				curPageRowDetailsNumber += rowMaxItemrowNumber;
+			}
+			
+			// 打印列表中横线
+			if (currentY==startY && cfg.tableBorder>0) {  // 行前只打印一次横线, 其它放到行后打印横线
+				returnData.push({ type: 'line', BeginY: currentY, BeginX: startX-linePaddingWidth, EndY: currentY, EndX: endX, fontcolor: "#000000", lineWidth: cfg.tableBorder || 1 });
+				currentY = parseFloat(currentY) + parseFloat((cfg.tableBorder || 1)) + 1; //打印线条后
+				colExtHeight += parseFloat((cfg.tableBorder || 1));
+			}
 			for (var plc = 0; plc < printListCount; plc++) { //列头
 				if (rowVal.length - 1 < plc) break;
 				var myColArr = [rowVal[plc]];
@@ -263,31 +343,49 @@ window.DHC_PreviewByCanvas = function(canvas, inpara, listpara, printjson, xmlfl
 					defCell.defaultvalue = col;
 					defCell.yrow = currentY + (rowHeight * subIndex);
 					returnData.push(defCell);
-					
 				});
 				/* 行的最大扩展高度 */
 				if (rowMaxExtHeigth < (rowHeight * myColArr.length)) rowMaxExtHeigth = (rowHeight * (myColArr.length - 1));
 			}
+			// 打印列表当前行竖线
+			if (cfg.tableBorder > 0) {
+				for (var plc = 0; plc < printListCount; plc++) {
+					returnData.push({
+						type: 'line',
+						BeginY: currentY-linePaddingWidth,
+						BeginX: printData[index + plc].xcol - (cfg.tableBorder || 1) - 1,
+						EndY: currentY + rowMaxExtHeigth + rowHeight ,
+						EndX: printData[index + plc].xcol - (cfg.tableBorder || 1) - 1,
+						fontcolor: "#000000", lineWidth: cfg.tableBorder || 1
+					});
+				}
+			}
 			currentY += rowMaxExtHeigth + rowHeight;
 			colExtHeight += rowMaxExtHeigth;
 			//打印列表中下横线
-			if (cfg.tabelBroder) returnData.push({type:'line', BeginY: currentY, BeginX: startX, EndY: currentY ,EndX: endX ,fontcolor: "#000000",lineWidth:cfg.tabelBroder||1});
+			if (cfg.tableBorder>0) {
+				returnData.push({ type: 'line', BeginY: currentY-linePaddingWidth, BeginX: startX, EndY: currentY, EndX: endX, fontcolor: "#000000", lineWidth: cfg.tableBorder || 1 });
+				currentY = parseFloat(currentY) + parseFloat((cfg.tableBorder || 1)) + 1; //打印线条后
+				colExtHeight += parseFloat((cfg.tableBorder || 1));
+			}
 		});	
-		// 打印列表中竖线
-		for (var plc = 0; plc < printListCount ; plc++) { //列头
-			if (cfg.tabelBroder) returnData.push({type:'line',BeginY: startY,BeginX: printData[index+plc].xcol,EndY: currentY,EndX: printData[index+plc].xcol,fontcolor: "#000000",lineWidth:cfg.tabelBroder||1});
-		}
+		// 打印列表中竖线 // 发现lodop的线条不能跨页打印
+		// for (var plc = 0; plc < printListCount ; plc++) { //列头
+		// 	if (cfg.tableBorder) {
+		// 		returnData.push({ type: 'line', BeginY: startY, BeginX: printData[index + plc].xcol-(cfg.tableBorder|| 1)-1, EndY: currentY, EndX: printData[index + plc].xcol, fontcolor: "#000000", lineWidth: cfg.tableBorder || 1 });
+		// 	}
+		// }
 		// 画处方斜线
 		if (inv.ListData.BackSlashWidth > 0) {
 			returnData.push({
 				type: 'line', BeginY: startY+inv.ListData.PageRows*rowHeight, BeginX: startX,
 				EndY: currentY, EndX: startX + (parseInt(inv.ListData.BackSlashWidth)*3.78)
 			});
-
 		}
 		return colExtHeight;
 	}
-	var _handerPrintJson = function(inv,cfg){
+	this._handerPrintJson = function (inv, cfg) {
+		var _t = this;
 		var printData = [];
 		printData.push({
 			type:"invoice",
@@ -313,21 +411,22 @@ window.DHC_PreviewByCanvas = function(canvas, inpara, listpara, printjson, xmlfl
 			if ("PLine"===b.type){b.yrow = b.BeginY;}
 			return parseInt(a.yrow)-parseInt(b.yrow);
 		});
-		//console.log(printData);
 		// 2. 合并数据与XML模板,内容自适应高度处理
 		var printInParaData = [];
 		var extHeight = 0; //自适应后,整体扩展的行高
 		printData.forEach(function(item,index){
 			if (item.type == 'Listdatapara') {
 				if (printListCount > 0) { //组织第一列时,把其它列数据也组织好
-					var colExtHeight = _handleListPrintJson(inv, index, listparaJson, extHeight, cfg, printData, printInParaData, printListCount);
+					var colExtHeight = _t._handleListPrintJson(inv, index, _t.listparaJson, extHeight, cfg, printData, printInParaData, printListCount);
 					if (cfg.rowHeightExpand) extHeight += colExtHeight;
 					printListCount = 0;
  				}
 			}else{
-				var d = inparaJson[item.name]||"";
-				if (d){item.defaultvalue = d };
-				item.yrow = parseFloat(item.yrow) + extHeight;
+				var d = _t.inparaJson[item.name]||"";
+				if (d) { item.defaultvalue = d };
+				if (item.isfollow=="true") { // 跟随时
+					item.yrow = parseFloat(item.yrow) + extHeight;
+				}
 				if (item.type == "txtdatapara" && undefined == item.isqrcode && undefined == item.barcodetype && item.width) {
 					var arr = d.split('\n');
 					if (item.contentFit) arr = splitDataByWidth(d, item.width, item.fontsize);
@@ -343,7 +442,19 @@ window.DHC_PreviewByCanvas = function(canvas, inpara, listpara, printjson, xmlfl
 				}
 			}
 		});
-		return { printInParaData: printInParaData, printImgCount: printImgCount };
+		if (printInParaData) {
+			var lastItemyrow = 0;
+			printInParaData.forEach(function (a) {
+				if (a.type == 'invoice') return 1;
+				if ("PLine" == a.type && lastItemyrow < a.BeginY) { lastItemyrow = a.BeginY; }
+				if ("PLine" == a.type && lastItemyrow < a.EndY){lastItemyrow = a.EndY;}
+				if (lastItemyrow < a.yrow) lastItemyrow = a.yrow;
+			});
+			/*底边留白高度 + 最后元素位置*/
+			if (_t.landscapeOrientation=='Z') printData[0].height = inv['height']*37.8 + lastItemyrow;
+		}
+		
+		return { printInParaData: printInParaData, printImgCount: printImgCount,extHeight:extHeight};
 	}
 	
 }

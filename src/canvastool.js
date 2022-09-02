@@ -72,6 +72,7 @@ function CanvasTool(options) {
             });
         }
     };
+    this.NewPage=function(){ };
     this.getImgBase64 = function (type,qu){
         //this.mycontext.scale(0.79,0.79);
         //this.mycontext.scale(0.79,0.79);
