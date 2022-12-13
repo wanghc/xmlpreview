@@ -242,12 +242,13 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 			PrintItem(c, item);
 		}
 		this.curPageNo = pageNo;
+		var that = this;
 		// printInParaData.forEach(function (item) { if (item["type"]=='newpage') return false ; PrintItem(DevObj, item); });
 		if (cfg.onCreateIMGBase64 || cfg.onCreatePDFBase64) {
 			var intrCount = 0;
 			window.intr = setInterval(function(){
 				intrCount++;
-				if (printInfo.printImgCount == c.imgLoadComplete || intrCount > 20) {
+				if (that.printImgCount == c.imgLoadComplete || intrCount > 20) {
 					clearInterval(window.intr);
 					var imgBase64Data = c.getImgBase64('image/jpeg', 1);
 					if (cfg.onCreateIMGBase64) {
@@ -400,7 +401,7 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 			width:inv['width']*37.8
 		});
 		nodeToPxInsertArray(printData,inv.PLData,"PLine",3.78*cfg.viewScale);
-		var printImgCount = nodeToPxInsertArray(printData,inv.PICData,"PICdatapara",3.78*cfg.viewScale).printCount;
+		_t.printImgCount = nodeToPxInsertArray(printData,inv.PICData,"PICdatapara",3.78*cfg.viewScale).printCount;
 		nodeToPxInsertArray(printData,inv.TxtData,"txtdatapara",3.78*cfg.viewScale);
 		var printListCount = nodeToPxInsertArray(printData,inv.ListData,"Listdatapara",3.78*cfg.viewScale).count;
 		// 1. y轴从小到大输出
@@ -454,7 +455,7 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 			if (_t.landscapeOrientation=='Z') printData[0].height = inv['height']*37.8 + lastItemyrow;
 		}
 		
-		return { printInParaData: printInParaData, printImgCount: printImgCount,extHeight:extHeight};
+		return { printInParaData: printInParaData, printImgCount: _t.printImgCount,extHeight:extHeight};
 	}
 	
 }

@@ -17,6 +17,9 @@
 */
 DHC_PreviewByCanvas(canvas,inpara,inlist,jsonArr,flagName,cfg)
 ```
+### 2022-12-12
+- 修复没有找到https图片时一直循环的问题 :bug:
+
 ### 20220902
 - 列表数据以c2开头,则去除c2,去掉空行
 - 打印考虑分页情况,当列表数据折行换算后，得到行数超时配置[一页行数]时，canvas换页
