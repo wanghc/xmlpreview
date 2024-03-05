@@ -250,7 +250,8 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 				intrCount++;
 				if (that.printImgCount == c.imgLoadComplete || intrCount > 20) {
 					clearInterval(window.intr);
-					var imgBase64Data = c.getImgBase64('image/jpeg', 0.2);  // 1 ->0.2 压缩
+					alert(that.cfg.encoderOptions);
+					var imgBase64Data = c.getImgBase64('image/jpeg', that.cfg.encoderOptions);  // 1 ->0.2 压缩
 					if (cfg.onCreateIMGBase64) {
 						cfg.onCreateIMGBase64.call(this,imgBase64Data);
 					}

@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --config webpack.config.js"
+    "build-无效": "set NODE_ENV=\"production\" && webpack --config webpack.config.js",
+    "build-dev-无效": "set NODE_ENV=\"development\" && webpack --config webpack.config.js",
+    "build": "webpack --config webpack.config.js",
+    "dev": "webpack --config webpack.config.dev.js"
   },
   "author": "wanghc",
   "license": "ISC",

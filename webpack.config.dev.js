@@ -12,8 +12,8 @@ module.exports = {
         path: 'E:\\dthealth\\app\\dthis\\web\\scripts\\dhctt\\xmldesigner' //此路径要修改
     },
     // mode:"none",
-    // mode:'development',
-    mode:'production',
+    mode:'development',
+    // mode:'production',
     optimization:{
         minimize:true,
         minimizer:[new TerserJSPlugin({

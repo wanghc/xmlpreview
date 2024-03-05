@@ -148,7 +148,7 @@ function code128Auto (canvas, input,options) {
 		}
 	}
 	if (options.base64Callback) {
-		options.base64Callback(canvas.toDataURL('image/jpeg',0.2)); // 默认0.92, 修改成0.2的压缩
+		options.base64Callback(canvas.toDataURL('image/jpeg'));
 		// code128Auto(document.getElementById('tmpcanvas'), 'AB1234567890',{unitWidth:1,height:50,showText:true});
 	}
 };
