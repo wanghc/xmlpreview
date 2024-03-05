@@ -17,6 +17,9 @@
 */
 DHC_PreviewByCanvas(canvas,inpara,inlist,jsonArr,flagName,cfg)
 ```
+### 2024-03-05
+- 图片压缩成0.2倍 :bug:
+
 ### 2022-12-12
 - 修复没有找到https图片时一直循环的问题 :bug:
 
