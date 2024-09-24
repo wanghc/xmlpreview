@@ -18,6 +18,10 @@
 */
 DHC_PreviewByCanvas(canvas,inpara,inlist,jsonArr,flagName,cfg)
 ```
+### 2024-09-24
+- 修复默认值不打印问题
+- 实现配置元素宽度后,自动换行功能 [4950752]
+
 ### 2024-03-05
 - 扩展encoderOptions配置项，减少pdf文件大小 :bug:
 

@@ -250,7 +250,6 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 				intrCount++;
 				if (that.printImgCount == c.imgLoadComplete || intrCount > 20) {
 					clearInterval(window.intr);
-					alert(that.cfg.encoderOptions);
 					var imgBase64Data = c.getImgBase64('image/jpeg', that.cfg.encoderOptions||0.92);  // 1 ->0.2 压缩
 					if (cfg.onCreateIMGBase64) {
 						cfg.onCreateIMGBase64.call(this,imgBase64Data);
@@ -424,14 +423,16 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 					printListCount = 0;
  				}
 			}else{
-				var d = _t.inparaJson[item.name]||"";
+				var d = _t.inparaJson[item.name]||item.defaultvalue||""; // 打印默认值
 				if (d) { item.defaultvalue = d };
 				if (item.isfollow=="true") { // 跟随时
 					item.yrow = parseFloat(item.yrow) + extHeight;
 				}
 				if (item.type == "txtdatapara" && undefined == item.isqrcode && undefined == item.barcodetype && item.width) {
 					var arr = d.split('\n');
-					if (item.contentFit) arr = splitDataByWidth(d, item.width, item.fontsize);
+					//if (item.contentFit) arr = splitDataByWidth(d, item.width, item.fontsize);
+					// 如果有宽度则自动换行
+					if (item.width) arr = splitDataByWidth(d, item.width, item.fontsize);
 					arr.forEach(function(v,i){
 						var o = copy(item);
 						o.yrow = parseFloat(item.yrow) + (parseInt(item.height)*i);
