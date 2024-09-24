@@ -14,9 +14,17 @@
         tabelBroder:Number配置项,列表线条宽度
         rowContentFit:boolean 行内容自动换行
         rowHeightExpand:boolean 行内容自动换行后,是否把后面元素向后推动
+        encoderOptions:Float 0~1之间的数，压缩比例
 */
 DHC_PreviewByCanvas(canvas,inpara,inlist,jsonArr,flagName,cfg)
 ```
+### 2024-09-24
+- 修复默认值不打印问题
+- 实现配置元素宽度后,自动换行功能 [4950752]
+
+### 2024-03-05
+- 扩展encoderOptions配置项，减少pdf文件大小 :bug:
+
 ### 2022-12-12
 - 修复没有找到https图片时一直循环的问题 :bug:
 

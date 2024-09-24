@@ -4,13 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-无效": "set NODE_ENV=\"production\" && webpack --config webpack.config.js",
+    "build-dev-无效": "set NODE_ENV=\"development\" && webpack --config webpack.config.js",
+    "build": "webpack --config webpack.config.js",
+    "dev": "webpack --config webpack.config.dev.js"
   },
   "author": "wanghc",
   "license": "ISC",
   "dependencies": {
     "crypto-browserify": "^3.12.0",
     "crypto-js": "^4.0.0",
-    "node-polyfill-webpack-plugin": "^2.0.1"
+    "node-polyfill-webpack-plugin": "^2.0.1",
+    "terser-webpack-plugin": "^5.3.10"
+  },
+  "devDependencies": {
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
   }
 }

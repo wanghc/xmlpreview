@@ -31,4 +31,11 @@ window.valid = function (opt) {
         return e71(obj.value,"1234567890ABCDEF","1234567887654321");
     }
 }
+function copy(obj){
+	var c = {};
+	for (var a in obj){
+		if (obj.hasOwnProperty(a)) c[a]=obj[a];
+	}
+	return c;
+}
 export default { valid };
