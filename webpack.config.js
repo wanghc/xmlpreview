@@ -1,18 +1,21 @@
 const {resolve} = require('path');
 const webpack = require('webpack');
 const TerserJSPlugin = require('terser-webpack-plugin');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 module.exports = {
     entry:['./src/index.js'],
     output: {
         environment: {
             arrowFunction: false  
         },
-        filename:'xmlPreviewByCanvas.js', 
-        //path: resolve(__dirname,'build')
-        path: 'E:\\dthealth\\app\\dthis\\web\\scripts\\dhctt\\xmldesigner' //此路径要修改
+        filename:'index.js', 
+        path: resolve(__dirname,'build')
+        //path: 'E:\\dthealth\\app\\dthis\\web\\scripts\\dhctt\\xmldesigner' //此路径要修改
     },
     //mode:'development',
-    mode:'production',
+    
+    mode: 'production',
+    plugins: [new NodePolyfillPlugin()],
     optimization:{
         minimize:true,
         minimizer:[new TerserJSPlugin({
