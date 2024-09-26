@@ -21,6 +21,26 @@ var DPIArr = (function js_getDPI() {
 	arrDPI[3] = arrDPI[1] / 72;  // pt = 1/72 (英寸) px=1/dpi (英寸)
 	return arrDPI;
 })();
+function getTextHeight(text,fontsize) {
+	// 创建一个临时的div元素
+	var div = document.createElement('div');
+	div.style.fontSize = fontsize;
+	div.textContent = text;
+	document.body.appendChild(div);
+	var height = div.offsetHeight;
+	document.body.removeChild(div);
+	return height;
+}
+function getTextWidth(text,fontsize) {
+	// 创建一个临时的div元素
+	var div = document.createElement('div');
+	div.style.fontSize = fontsize;
+	div.textContent = text;
+	document.body.appendChild(div);
+	var w = div.offsetWidth;
+	document.body.removeChild(div);
+	return w;
+}
 /**
  * 
  * @param {String} val 文本内容
@@ -431,12 +451,14 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 				if (item.type == "txtdatapara" && undefined == item.isqrcode && undefined == item.barcodetype && item.width) {
 					var arr = d.split('\n');
 					//if (item.contentFit) arr = splitDataByWidth(d, item.width, item.fontsize);
-					// 如果有宽度则自动换行
+					// 如果有宽度则自动换行,此时高度为单行高度（不是元素区块高度） 20240926
 					if (item.width) arr = splitDataByWidth(d, item.width, item.fontsize);
+					var textHeight = getTextHeight("行高LineHeight"+arr[0],item.fontsize); // 第一行内容高度
 					arr.forEach(function(v,i){
 						var o = copy(item);
-						o.yrow = parseFloat(item.yrow) + (parseInt(item.height)*i);
-						if (o.heightExpand) extHeight += (parseInt(item.height)*i);
+						o.height = parseFloat(textHeight)+2; // 行高补2
+						o.yrow = parseFloat(item.yrow) + (parseInt(o.height)*i);
+						if (o.heightExpand) extHeight += (parseInt(o.height)*i);
 						o.defaultvalue = v;
 						printInParaData.push(o);
 					});
