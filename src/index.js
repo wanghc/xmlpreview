@@ -1,3 +1,4 @@
+
 import { XML } from "./ObjTree";
 import { inpara2Obj, listpara2Obj } from "./xmlparam";
 import { CanvasTool } from "./canvastool";
@@ -481,5 +482,5 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 		
 		return { printInParaData: printInParaData, printImgCount: _t.printImgCount,extHeight:extHeight};
 	}
-	
 }
+
