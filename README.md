@@ -10,6 +10,7 @@
  *    flagName : xml模板名称， 如：DHCPresNo
  *    cfg:
         支持pdfDownload:boolean配置项,用于调试预览后得到pdf文件
+        支持pdfName:String 配置项,pdf文件名, 如： mydoc-111.pdf
         支持onCreatePDFBase64:function(pdfbase64){}配置项,用于生成pdf后回调
         tabelBroder:Number配置项,列表线条宽度
         rowContentFit:boolean 行内容自动换行
@@ -18,6 +19,10 @@
 */
 DHC_PreviewByCanvas(canvas,inpara,inlist,jsonArr,flagName,cfg)
 ```
+
+### 2025-12-29
+- 扩展pdfName属性来指定下载pdf的文件名 [6506672]
+
 ### 2024-09-24
 - 修复默认值不打印问题
 - 实现配置元素宽度后,自动换行功能 [4950752]

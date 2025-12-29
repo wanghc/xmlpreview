@@ -283,7 +283,19 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 							doc = new jsPDF('p', 'mm', [canvas.width * 0.225, canvas.height * 0.225]);
 						}
 						doc.addImage(imgBase64Data, 'jpeg', 0, 0, canvas.width * 0.225, canvas.height * 0.225);
-						if(cfg.pdfDownload) doc.save(xmlflag+'.pdf');
+						if(cfg.pdfDownload){
+							function sanitizeFileName(fileName) {
+								// 移除任何路径遍历尝试，只保留文件名
+								return fileName.replace(/(\.\.\/|\.\\\.\.)/g, '').replace(/[^a-zA-Z0-9. _-]/g, '_');
+							}
+							if (typeof cfg.pdfName !== 'undefined' && cfg.pdfName !== null && cfg.pdfName !== "" && typeof cfg.pdfName === 'string'){
+								var pdfName = sanitizeFileName(cfg.pdfName);
+								var qusIndex = cfg.pdfName.toLowerCase().indexOf('.pdf');
+								doc.save((qusIndex>-1 ? pdfName.slice(0,qusIndex) : pdfName) + '.pdf');
+							}else{
+								doc.save(xmlflag+'.pdf');
+							}
+						}
 						var basePDFString = doc.output("datauristring");
 						cfg.onCreatePDFBase64.call(this, basePDFString);
 					}
