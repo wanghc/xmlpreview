@@ -443,6 +443,7 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 			if (b.type=='invoice') return 1;
 			if ("PLine"==a.type){a.yrow = a.BeginY;}
 			if ("PLine"===b.type){b.yrow = b.BeginY;}
+			if ('Listdatapara'===a.type && 'Listdatapara'===b.type) { return parseInt(a.xcol)-parseInt(b.xcol);}
 			return parseInt(a.yrow)-parseInt(b.yrow);
 		});
 		// 2. 合并数据与XML模板,内容自适应高度处理
