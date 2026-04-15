@@ -207,6 +207,7 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 	this.pageSizeHeight = 0;
 	this.layoutContainerId = "XMLLayoutContainer";
 	this.landscapeOrientation = "";
+	this.retryMaxTimeByImgGreen = cfg.retryMaxTimeByImgGreen||0; // 再次重试打印次数
 	this.init = function () {
 		var _t = this;
 		XML.ObjTree.prototype.attr_prefix = "";
@@ -269,6 +270,13 @@ window.DHC_PreviewByCanvas = function (canvas, inpara, listpara, printjson, xmlf
 			var intrCount = 0;
 			window.intr = setInterval(function(){
 				intrCount++;
+				if (that.retryMaxTimeByImgGreen>0 && c.hasGreenImgBlock){
+					clearInterval(window.intr);
+					// 重新运行一次生成
+					that.init();
+					that.retryMaxTimeByImgGreen--;
+					return;
+				}
 				if (that.printImgCount == c.imgLoadComplete || intrCount > 20) {
 					clearInterval(window.intr);
 					var imgBase64Data = c.getImgBase64('image/jpeg', that.cfg.encoderOptions||0.92);  // 1 ->0.2 压缩

@@ -20,6 +20,9 @@
 DHC_PreviewByCanvas(canvas,inpara,inlist,jsonArr,flagName,cfg)
 ```
 
+### 2026-04-15
+- 在IE11下生成电子处方时签名偶尔(每天10张左右)变成绿色块 [6815008]
+
 ### 2025-12-29
 - 扩展pdfName属性来指定下载pdf的文件名 [6506672]
 

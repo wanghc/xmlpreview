@@ -2,6 +2,7 @@ import { code128Auto } from './barcode128';
 import { QRCodeTool } from './qrcode.tool';
 function CanvasTool(options) {
     this.imgLoadComplete = 0;
+    this.hasGreenImgBlock = false;
     if (options.id) {
         this.mycanvas = document.getElementById(options.id);
     } else {
@@ -37,6 +38,52 @@ function CanvasTool(options) {
         this.mycontext.fillText(value, x,y); //,maxWidth	
     }
     this.ADD_PRINT_IMAGE = function (x,y,width,height,value,callback){
+        function isGreenBlock(imageData) {
+            var data = imageData.data;
+            var targetGreenPixels = 0;
+            var totalPixels = data.length / 4;
+            // #008700 对应的 RGB 值
+            var targetR = 0, targetG = 135, targetB = 0;
+            // 设置容差范围（允许一定偏差）
+            var tolerance = 20;
+            for (var i = 0; i < data.length; i += 4) {
+                var r = data[i], g = data[i + 1], b = data[i + 2];
+                // 检测是否接近目标绿色 #008700
+                if (
+                Math.abs(r - targetR) <= tolerance &&
+                Math.abs(g - targetG) <= tolerance &&
+                Math.abs(b - targetB) <= tolerance
+                ) {
+                targetGreenPixels++;
+                }
+            }
+
+            // 如果目标绿色像素占比过高（如超过 80%），认为是异常
+            return targetGreenPixels / totalPixels > 0.8;
+        }
+        function isBlackBlock(imageData) {
+            var data = imageData.data;
+            var targetBlackPixels = 0;
+            var totalPixels = data.length / 4;
+            // #000000 对应的 RGB 值
+            var targetR = 0, targetG = 0, targetB = 0;
+            // 设置容差范围（允许一定偏差）
+            var tolerance = 30;
+            for (var i = 0; i < data.length; i += 4) {
+                var r = data[i], g = data[i + 1], b = data[i + 2];
+                // 检测是否接近目标绿色 #000000
+                if (
+                Math.abs(r - targetR) <= tolerance &&
+                Math.abs(g - targetG) <= tolerance &&
+                Math.abs(b - targetB) <= tolerance
+                ) {
+                targetBlackPixels++;
+                }
+            }
+
+            // 如果目标绿色像素占比过高（如超过 80%），认为是异常
+            return targetBlackPixels / totalPixels > 0.8;
+        }
         if (value.indexOf("http")==0 || value.indexOf("data:")==0){
             var newimg = new Image();
             newimg.style.width = width+'px';
@@ -47,6 +94,11 @@ function CanvasTool(options) {
             newimg.onload = function() {
                 _t.mycontext.drawImage(newimg,x,y,width,height);
                 _t.imgLoadComplete++;
+                // 增加以下4行,判断图片是不是有问题
+                var testImageData = _t.mycontext.getImageData(x, y, Math.min(width, 20), Math.min(height, 20));
+                if (isGreenBlock(testImageData) || isBlackBlock(testImageData)) {
+                    _t.hasGreenImgBlock = true;
+                }
                 //callback();
             };
         }
